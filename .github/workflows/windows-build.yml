@@ -1,0 +1,25 @@
+name: Windows - Generate Visual Studio Solution
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Configure with CMake (Visual Studio)
+      run: >
+        cmake -S . -B build
+        -G "Visual Studio 15 2017"
+        -A x64
+
+    - name: Upload Visual Studio Project Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: VisualStudioProject
+        path: build/
