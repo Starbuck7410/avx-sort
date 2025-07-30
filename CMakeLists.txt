@@ -9,5 +9,4 @@ add_executable(avx-sort ${SOURCES})
 target_include_directories(avx-sort PRIVATE include)
 
 
-target_compile_options(avx-sort PRIVATE -mavx)
 target_compile_options(avx-sort PRIVATE -mavx2)

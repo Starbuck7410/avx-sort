@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define N 10000
+#define N 2500
 
 
 uint64_t nanos()
@@ -48,7 +48,7 @@ __m256i * simd_create_rand_arr(size_t n){
     for(int i = 0; i < n; i++){
         int32_t random[8];
         for(int j = 0; j < 8; j++){
-            srand(time(NULL) + i);
+            srand(time(NULL) + i + j);
             random[j] = rand() % n;
         }
         
@@ -66,32 +66,52 @@ __m256i * simd_bubble_sort(__m256i * array, size_t n){
             mask = _mm256_cmpgt_epi32(r_array[j], r_array[j+1]);
             __m256i temp = r_array[j];
 
-            __m256i arg_a = __builtin_ia32_andsi256(mask, r_array[j+1]);
-            __m256i arg_b = __builtin_ia32_andnotsi256(mask, r_array[j]);
-            r_array[j] = _mm256_or_epi32(arg_a, arg_b);
+            __m256i arg_a = _mm256_and_si256(mask, r_array[j+1]);
+            __m256i arg_b = _mm256_andnot_si256(mask, r_array[j]);
+            r_array[j] = _mm256_or_si256(arg_a, arg_b);
 
-            arg_a = __builtin_ia32_andnotsi256(mask, r_array[j+1]);
-            arg_b = __builtin_ia32_andsi256(mask, temp);
-            r_array[j+1] = _mm256_or_epi32(arg_a, arg_b);
+            arg_a = _mm256_andnot_si256(mask, r_array[j+1]);
+            arg_b = _mm256_and_si256(mask, temp);
+            r_array[j+1] = _mm256_or_si256(arg_a, arg_b);
         }
     }
 
     return r_array;
 }
 
+// int32_t * simd_merge_sorted(__m256i * array, size_t n){
+//     int32_t * merged = (int32_t * ) malloc(8 * n * sizeof(int32_t));
+
+//     for(int i = 0; i < n; i++){
+//         _mm256_storeu_si256((__m256i * ) merged[8 * i], array[i]);
+//     }
+//     return merged;
+
+// }
 
 
 int main(){
     // print_hey();
-    int32_t * array = create_rand_arr(N);
+    __m256i * array = simd_create_rand_arr(N);
+    // int32_t * array_sorted = bubble_sort(array, N);
+    
+    
     uint64_t time = nanos();
-    int32_t * array_sorted = bubble_sort(array, N);
+    __m256i * array_sorted = simd_bubble_sort(array, N);
     time = nanos() - time;
+    
+    // int32_t * int_array = simd_merge_sorted(array_sorted, N);
+
+    // for(int i = 0; i < 8 * N; i++){
+    //     printf("%d, ", int_array[i]);
+    // }
+
+
     free(array);
     free(array_sorted);
-
+    // free(int_array);
     printf("\n");
-    printf("Time passed: %uns\n", time);
+    printf("Sorted %d items in %uns (%ums) \n", N * 8, time, time / 1000000);
     return 0;
 }
 
