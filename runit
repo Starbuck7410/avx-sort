@@ -1,6 +1,0 @@
-#!/bin/bash
-rm -rf build
-cmake -B build -S .
-cmake --build build
-echo "  - PROGRAM OUTPUT STARTS HERE - "
-build/avx-sort
